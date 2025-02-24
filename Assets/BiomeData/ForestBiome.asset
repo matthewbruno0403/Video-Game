@@ -1,0 +1,272 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf127cb861d14ea4f9fbdb5c906fc316, type: 3}
+  m_Name: ForestBiome
+  m_EditorClassIdentifier: 
+  biomeId: 1
+  biomeName: Forest
+  minSpawnCount: 400
+  maxSpawnCount: 800
+  spawnRules:
+  - objectToSpawn: {fileID: 1882041347760226644, guid: 4ba1789a831ab7942b5ee38beead9e9a, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    requireSpacing: 1
+    cannotSpawnNear:
+    - Tree
+    spacingDistance: 1
+    objectType: Tree
+    rarity: 25
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 5474476705674635300, guid: 4872c3987d5190a449a52e35f11e4b4f, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    requireSpacing: 1
+    cannotSpawnNear:
+    - Tree
+    spacingDistance: 1
+    objectType: Tree
+    rarity: 15
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 5078218361632670616, guid: fdac393a8841fdf45837bbb588fb235b, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Grass
+    rarity: 30
+    useDenseClusters: 1
+    clusterRadius: 2
+    clusterCount: 1
+  - objectToSpawn: {fileID: 3105761841574993965, guid: 7b398243a5379a740ad7ff862cfe8e74, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Rock
+    rarity: 10
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 6091305751505126597, guid: e868e9a17d47ae74dace015ace0355f4, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Stone
+    rarity: 15
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 8209620925367922815, guid: 1298d670463f3c14ebe364a0f6b4294b, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Rock
+    rarity: 10
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 5618044401654916534, guid: b2840423d7082114a9520a239992724e, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Stone
+    rarity: 15
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 2335315915838856029, guid: 6554e20a56a3103489604cc746d19e8c, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Rock
+    rarity: 3
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 4218098962519941942, guid: 0996d47a7bf93f3448ede08673960894, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Stone
+    rarity: 3
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 3145864260538899709, guid: c1ab59568ce063744a5c35d7d3fb1b53, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Rock
+    rarity: 0
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 0
+  - objectToSpawn: {fileID: 8892075083858858461, guid: cb7cf7a2dc6d8d843960f182c249ef5c, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Stone
+    rarity: 0
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 3009607474888200564, guid: a384fa67337646c41adaa28c2b703e18, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Stone
+    rarity: 3
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 2173896931179753279, guid: 1bb47a55fe374a849af3b6242bd11f52, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Stone
+    rarity: 3
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 5004673839360131126, guid: 44661a1dc99563442819a536ccf6354d, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: SmallPlant
+    rarity: 10
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 7343352805870286582, guid: 07c36cb21b80c6e40817e5127919ae8c, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    - {fileID: 11400000, guid: 43b6507dec84c1245bd85a9dba1a998d, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Stick
+    rarity: 15
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 5307951073733828796, guid: c48445d46dc231a40b444657db12d9f8, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Mushroom
+    rarity: 0.1
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 6979878223486226571, guid: 095db3aebe7feb64d9b1270829804c94, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Mushroom
+    rarity: 0.1
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 7537542785921135833, guid: 0a2ea515bc2f8a644ada4d8b844dff9f, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Mushroom
+    rarity: 0.1
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 3668152150788155668, guid: d87fbe545386c5f4fa5aca73a260a13e, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Mushroom
+    rarity: 0.1
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
+  - objectToSpawn: {fileID: 952963321717947689, guid: 771433cac16efaa42ae883dbf7e57a9d, type: 3}
+    allowedTiles:
+    - {fileID: 11400000, guid: 412701edb010cb64bba422e0bdb5714a, type: 2}
+    - {fileID: 11400000, guid: 17abddd35b59f6848ba9cb1a1b398f40, type: 2}
+    requireSpacing: 0
+    cannotSpawnNear: []
+    spacingDistance: 1
+    objectType: Mushroom
+    rarity: 0.1
+    useDenseClusters: 0
+    clusterRadius: 3
+    clusterCount: 1
