@@ -1,10 +1,12 @@
 using UnityEngine;
-using UnityEngine.EventSystems; // for IPointerDownHandler, IPointerUpHandler
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 
-public class RecipeSlotUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
+public class RecipeSlotUI : MonoBehaviour, 
+    IPointerEnterHandler, IPointerExitHandler,
+    IPointerClickHandler
 {
     public Image resultIcon;
     public TextMeshProUGUI resultQuantityText;
@@ -12,22 +14,23 @@ public class RecipeSlotUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
     public GameObject ingredientSlotPrefab;
 
     [Header("Crafting Settings")]
-    public float craftInterval = 0.2f; // how many seconds between crafts
+    public float craftInterval = 10f; // seconds between crafts (adjust as needed)
 
     private Recipe currentRecipe;
-    private bool isCrafting;       // are we currently holding the mouse?
     private Coroutine craftRoutine;
+
+    // Track whether the pointer is over this slot
+    private bool isPointerOver = false;
 
     public void Setup(Recipe recipe)
     {
-        Debug.Log($"[RecipeSlotUI] Setup called with recipe={recipe}, resultItem={recipe.resultItem}, " +
-                  $"ingredientParent={ingredientParent}, ingredientSlotPrefab={ingredientSlotPrefab}", this);
-        
         currentRecipe = recipe;
 
         // Display the result item
         resultIcon.sprite = recipe.resultItem.icon;
-        resultQuantityText.text = (recipe.resultQuantity > 1) ? recipe.resultQuantity.ToString() : "";
+        resultQuantityText.text = (recipe.resultQuantity > 1) 
+            ? recipe.resultQuantity.ToString() 
+            : "";
 
         // Clear old ingredient icons
         foreach (Transform child in ingredientParent)
@@ -44,56 +47,93 @@ public class RecipeSlotUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
         }
     }
 
-    // Called when mouse/touch is pressed down on this slot
-    public void OnPointerDown(PointerEventData eventData)
+    // -------------------------------
+    // Pointer Tracking
+    // -------------------------------
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        isPointerOver = true;
+        TooltipUI.instance.ShowTooltip(currentRecipe?.resultItem.itemName);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        isPointerOver = false;
+        TooltipUI.instance.HideTooltip();
+    }
+
+    // -------------------------------
+    // Detect Left-Click (Single Click)
+    // -------------------------------
+    public void OnPointerClick(PointerEventData eventData)
     {
         if (currentRecipe == null) return;
 
-        // Start continuous crafting
-        isCrafting = true;
-        craftRoutine = StartCoroutine(CraftContinuously());
+        // Only handle Left Mouse button
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            // Check if Shift is held for "craft all"
+            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            {
+                CraftAllPossible();
+            }
+            else
+            {
+                // Craft exactly one item
+                InventoryManager.instance.CraftItem(currentRecipe);
+            }
+        }
     }
 
-    // Called when mouse/touch is released
-    public void OnPointerUp(PointerEventData eventData)
+    // -------------------------------
+    // Continuous Crafting via Update
+    // -------------------------------
+    private void Update()
     {
-        // Stop continuous crafting
-        isCrafting = false;
-        if (craftRoutine != null)
+        // If pointer is over this slot and right mouse button is held...
+        if (isPointerOver && Input.GetMouseButton(1))
         {
-            StopCoroutine(craftRoutine);
-            craftRoutine = null;
+            if (craftRoutine == null)
+            {
+                craftRoutine = StartCoroutine(CraftContinuously());
+            }
+        }
+        else
+        {
+            if (craftRoutine != null)
+            {
+                StopCoroutine(craftRoutine);
+                craftRoutine = null;
+            }
         }
     }
 
     private IEnumerator CraftContinuously()
     {
-        while (isCrafting)
+        while (isPointerOver && Input.GetMouseButton(1))
         {
-            // Attempt to craft one item
             bool success = InventoryManager.instance.CraftItem(currentRecipe);
             if (!success)
             {
-                // No more ingredients or inventory is full
+                // Not enough ingredients or inventory full—stop crafting
                 break;
             }
-
-            // Wait before crafting another
             yield return new WaitForSeconds(craftInterval);
         }
+        craftRoutine = null;
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
+    private void CraftAllPossible()
     {
-        if (currentRecipe == null) return;
-
-        // Show recipe result item name
-        string tooltipText = currentRecipe.resultItem.itemName;
-        TooltipUI.instance.ShowTooltip(tooltipText);
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        TooltipUI.instance.HideTooltip();
+        // Optionally, only allow "craft all" for stackable items
+        if (!currentRecipe.resultItem.stackable)
+        {
+            InventoryManager.instance.CraftItem(currentRecipe);
+            return;
+        }
+        while (InventoryManager.instance.CraftItem(currentRecipe))
+        {
+            // Keep crafting until ingredients run out or inventory is full
+        }
     }
 }

@@ -11,7 +11,13 @@ public class PickUpItem : MonoBehaviour
     public int quantity = 1;
 
     [HideInInspector] private bool isDropping = false;
-    [HideInInspector] private Vector3 dropDestination;
+    // [HideInInspector] private Vector3 dropDestination;
+    private Vector3 dropStartPos;
+    private Vector3 dropEndPos;
+    private float dropTime = 0f;
+    private float dropDuration = 0.4f;
+    private float arcHeight = 0.3f;
+
 
     private InventoryManager inventoryManager;
 
@@ -34,7 +40,10 @@ public class PickUpItem : MonoBehaviour
         isDropping = true;
         // The item is already at the player's position; 
         // move it 'tilesToDrop' units in the facing direction
-        dropDestination = transform.position + facingDirection * tilesToDrop;
+        // dropDestination = transform.position + facingDirection * tilesToDrop;
+        dropStartPos = transform.position;
+        dropEndPos = dropStartPos + facingDirection * tilesToDrop;
+        dropTime = 0f;
     }
 
     private void Start()
@@ -64,13 +73,18 @@ public class PickUpItem : MonoBehaviour
         // 1) Handle dropping animation first
         if (isDropping)
         {
-            transform.position = Vector3.MoveTowards(
-                transform.position,
-                dropDestination,
-                speed * Time.deltaTime
-            );
+            dropTime += Time.deltaTime;
+            float t = dropTime / dropDuration;
+            t = Mathf.Clamp01(t);
 
-            if (Vector3.Distance(transform.position, dropDestination) < 0.1f)
+            Vector3 newPos = Vector3.Lerp(dropStartPos, dropEndPos, t);
+
+            float heightOffset = arcHeight * Mathf.Sin(Mathf.PI * t);
+            newPos.y += heightOffset;
+
+            transform.position = newPos;
+
+            if (t >= 1f)
             {
                 // Done dropping
                 isDropping = false;
