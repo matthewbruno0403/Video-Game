@@ -99,6 +99,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 10
   pickUpDistance: 1.5
-  timeToLeave: 6000
+  timeToLeave: 300
   itemData: {fileID: 11400000, guid: 9088507a903c6654ab06a68fa9a1d7dd, type: 2}
   quantity: 1

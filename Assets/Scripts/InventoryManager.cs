@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class InventoryManager : MonoBehaviour
 {
@@ -65,46 +66,63 @@ public class InventoryManager : MonoBehaviour
     }
 
     // ------------------------------------------------
-    // Adding items to inventory
+    // AddItem now returns the slot index used (or -1 if no space)
     // ------------------------------------------------
-    public bool AddItem(Item newItem, int quantity)
+    public int AddItem(Item newItem, int quantity)
     {
         Debug.Log($"[InventoryManager] AddItem called with item={newItem}, qty={quantity}", this);
+
+        int leftover = quantity;
+        int usedSlotIndex = -1;  // Will store the first slot where we place or merge items
+
         // 1) If item is stackable, fill partial stacks first
         if (newItem.stackable)
         {
-            for (int i = 0; i < itemStacks.Length && quantity > 0; i++)
+            for (int i = 0; i < itemStacks.Length && leftover > 0; i++)
             {
-                // if this slot is the same item AND not at max
-                if (itemStacks[i] != null && itemStacks[i].item == newItem 
+                // If this slot has the same item and is not at max
+                if (itemStacks[i] != null 
+                    && itemStacks[i].item == newItem 
                     && itemStacks[i].quantity < newItem.maxStack)
                 {
                     int canAdd = newItem.maxStack - itemStacks[i].quantity;
-                    int toAdd = Mathf.Min(canAdd, quantity);
-                    itemStacks[i].quantity += toAdd;
-                    quantity -= toAdd;
+                    int toAdd = Mathf.Min(canAdd, leftover);
+
+                    if (toAdd > 0)
+                    {
+                        itemStacks[i].quantity += toAdd;
+                        leftover -= toAdd;
+                        // Record the slot we used if we haven't yet
+                        if (usedSlotIndex < 0) usedSlotIndex = i;
+                    }
                 }
             }
         }
 
-        // 2) If leftover remains (or not stackable), place in next empty slot
-        while (quantity > 0)
+        // 2) If leftover remains, place in empty slots
+        while (leftover > 0)
         {
             int emptyIndex = FindEmptySlot();
             if (emptyIndex == -1)
             {
+                // No more space in inventory
                 Debug.Log("[InventoryManager] Inventory is full!", this);
-                return false;
+                return -1;
             }
 
-            int amountToPlace = Mathf.Min(quantity, newItem.maxStack);
+            // Place as many as we can (up to maxStack)
+            int amountToPlace = Mathf.Min(leftover, newItem.maxStack);
             itemStacks[emptyIndex] = new ItemStack(newItem, amountToPlace);
-            quantity -= amountToPlace;
+            leftover -= amountToPlace;
+
+            // Record the slot we used if we haven't yet
+            if (usedSlotIndex < 0) usedSlotIndex = emptyIndex;
         }
 
-        // All placed
+        // 3) Everything placed successfully
         RefreshUI();
-        return true;
+        Debug.Log($"[InventoryManager] AddItem finished. {newItem.itemName} placed in slot {usedSlotIndex}");
+        return usedSlotIndex;
     }
 
     private int FindEmptySlot()
@@ -143,7 +161,8 @@ public class InventoryManager : MonoBehaviour
         {
             for (int i = 0; i < itemStacks.Length && leftover > 0; i++)
             {
-                if (itemStacks[i] != null && itemStacks[i].item == newItem 
+                if (itemStacks[i] != null 
+                    && itemStacks[i].item == newItem 
                     && itemStacks[i].quantity < newItem.maxStack)
                 {
                     int canAdd = newItem.maxStack - itemStacks[i].quantity;
@@ -189,29 +208,90 @@ public class InventoryManager : MonoBehaviour
     public bool CraftItem(Recipe recipe)
     {
         Debug.Log($"[InventoryManager] CraftItem called with recipe={recipe}, resultItem={recipe.resultItem}", this);
-        // 1) Check if we have enough of each ingredient
+        
+        // 1) Prevent infinite duplication if result is in the group
         foreach (var ing in recipe.ingredients)
         {
-            int totalInInventory = CountItem(ing.item);
+            if (ing.useGroup && ing.itemGroup != null && ing.itemGroup.items.Contains(recipe.resultItem))
+            {
+                Debug.LogError($"[InventoryManager] Infinite duplication prevented: The result item '{recipe.resultItem.itemName}' is in the ingredient group '{ing.itemGroup.groupName}'.");
+                return false;
+            }
+        }
+        
+        // 2) Check if we have enough of each ingredient
+        foreach (var ing in recipe.ingredients)
+        {
+            int totalInInventory = 0;
+            if (ing.useGroup)
+            {
+                totalInInventory = CountItemsInGroup(ing.itemGroup);
+            }
+            else
+            {
+                totalInInventory = CountItem(ing.item);
+            }
             if (totalInInventory < ing.quantity)
             {
                 Debug.Log("[InventoryManager] Not enough ingredients!", this);
-                // Not enough
                 return false;
             }
         }
 
-        // 2) Remove them
+        // 3) Remove the required items
         foreach (var ing in recipe.ingredients)
         {
-            RemoveItem(ing.item, ing.quantity);
+            bool removed = false;
+            if (ing.useGroup)
+            {
+                removed = RemoveItemsFromGroup(ing.itemGroup, ing.quantity);
+            }
+            else
+            {
+                removed = RemoveItem(ing.item, ing.quantity);
+            }
+            if (!removed)
+            {
+                Debug.LogWarning("[InventoryManager] Failed to remove required items for crafting!", this);
+                return false;
+            }
         }
 
-        // 3) Add the result
-        AddItem(recipe.resultItem, recipe.resultQuantity);
-        RefreshUI();
+        // 4) Add the crafted result (now returns the slot index, not bool)
+        int usedSlot = AddItem(recipe.resultItem, recipe.resultQuantity);
+        if (usedSlot >= 0)
+        {
+            RefreshUI();
+
+            Debug.Log($"[CraftItem] Crafted {recipe.resultItem.itemName} placed in slot {usedSlot}. (Slot now contains: {itemStacks[usedSlot]?.item?.itemName})");
+            HotbarUI hotbarUI = FindObjectOfType<HotbarUI>();
+                
+            // --- KEY CHANGE: Instead of ForceReequipSlot(...) alone, call SetActiveSlot(...) if it's the same slot.
+            if (hotbarUI != null && usedSlot == hotbarUI.activeSlotIndex)
+            {
+                Debug.Log($"[InventoryManager] CraftItem: usedSlot == activeSlotIndex ({usedSlot}). " +
+                        $"Calling SetActiveSlot so it re‐equips immediately.");
+                hotbarUI.SetActiveSlot(usedSlot);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[InventoryManager] Not enough space for the crafted item!");
+        }
+
+        if (usedSlot >= 0 && hotbarUI != null)
+        {
+            // Only do it if that slot is already your active slot:
+            if (usedSlot == hotbarUI.activeSlotIndex)
+            {
+                StartCoroutine(ForceEquipNextFrame(usedSlot));
+            }
+        }
+
+        // 5) Done
         return true;
     }
+
 
     public int CountItem(Item item)
     {
@@ -230,16 +310,13 @@ public class InventoryManager : MonoBehaviour
     {
         Debug.Log($"[InventoryManager] RemoveItem item={item}, amount={amount}", this);
         int remaining = amount;
-
         for (int i = 0; i < itemStacks.Length; i++)
         {
-            // Check if slot has this item
             if (itemStacks[i] != null && itemStacks[i].item == item)
             {
                 int removeFromSlot = Mathf.Min(remaining, itemStacks[i].quantity);
                 itemStacks[i].quantity -= removeFromSlot;
                 remaining -= removeFromSlot;
-
                 if (itemStacks[i].quantity <= 0)
                 {
                     itemStacks[i] = null;
@@ -247,8 +324,48 @@ public class InventoryManager : MonoBehaviour
                 if (remaining <= 0) break;
             }
         }
-
-        // Return true if we removed the full 'amount'
         return (remaining <= 0);
+    }
+
+    // New: Count total items in a group.
+    public int CountItemsInGroup(ItemGroup group)
+    {
+        int total = 0;
+        for (int i = 0; i < itemStacks.Length; i++)
+        {
+            if (itemStacks[i] != null && group.items.Contains(itemStacks[i].item))
+            {
+                total += itemStacks[i].quantity;
+            }
+        }
+        return total;
+    }
+
+    // New: Remove items belonging to a group.
+    public bool RemoveItemsFromGroup(ItemGroup group, int amount)
+    {
+        int remaining = amount;
+        for (int i = 0; i < itemStacks.Length; i++)
+        {
+            if (itemStacks[i] != null && group.items.Contains(itemStacks[i].item))
+            {
+                int removeFromSlot = Mathf.Min(remaining, itemStacks[i].quantity);
+                itemStacks[i].quantity -= removeFromSlot;
+                remaining -= removeFromSlot;
+                if (itemStacks[i].quantity <= 0)
+                {
+                    itemStacks[i] = null;
+                }
+                if (remaining <= 0) break;
+            }
+        }
+        return (remaining <= 0);
+    }
+
+    private IEnumerator ForceEquipNextFrame(int slotIndex)
+    {
+        // Wait one frame so any “Equip(null)” calls finish first
+        yield return null;
+        hotbarUI.SetActiveSlot(slotIndex);
     }
 }

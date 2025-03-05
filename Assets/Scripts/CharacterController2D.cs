@@ -7,6 +7,7 @@ public class CharacterController2D : MonoBehaviour
 {
     Rigidbody2D rb;
     [SerializeField] float speed = 2f;
+    private bool canMove = true;
     Vector2 motionVector;
     public Vector2 lastMotionVector;
     Animator animator;
@@ -57,9 +58,31 @@ public class CharacterController2D : MonoBehaviour
         }
     }
 
+    public void SetSpeed(float newSpeed)
+    {
+        speed = newSpeed;
+    }
+    public float GetSpeed()
+    {
+        return speed;
+    }
+    
     void FixedUpdate()
     {
-        Move();
+        if (canMove)
+        {
+            Move();
+        }
+        else
+        {
+            rb.velocity = Vector2.zero;
+        }
+
+    }
+
+    public void SetCanMove(bool value)
+    {
+        canMove = value;
     }
 
     private void Move()

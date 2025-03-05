@@ -7,9 +7,8 @@ public class TooltipUI : MonoBehaviour
 
     public TextMeshProUGUI tooltipText;     // The text component for the tooltip
 
-    [Header("Canvas References")]
-    public Canvas uiCanvas;                 // Assign the same "Screen Space - Camera" Canvas
-    public Camera uiCamera;                 // The camera used to render that Canvas
+    [Header("Canvas Reference")]
+    public Canvas uiCanvas;  // For Screen Space - Overlay or Screen Space - Camera
 
     void Awake()
     {
@@ -26,14 +25,16 @@ public class TooltipUI : MonoBehaviour
             Vector2 localPoint;
             RectTransform canvasRect = uiCanvas.GetComponent<RectTransform>();
 
+            // Use null for the camera if your Canvas is Screen Space - Overlay
+            // or if you have a single camera and want to rely on Overlay behavior
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 canvasRect,
                 Input.mousePosition,
-                uiCamera,
+                null, // Removed uiCamera
                 out localPoint
             );
 
-            // Add an offset
+            // Optional offset if desired:
             // localPoint += new Vector2(1f, -15f);
 
             // Move the tooltip

@@ -14,47 +14,88 @@ public class RecipeSlotUI : MonoBehaviour,
     public GameObject ingredientSlotPrefab;
 
     [Header("Crafting Settings")]
-    public float craftInterval = 10f; // seconds between crafts (adjust as needed)
+    public float craftInterval = 10f; // seconds between crafts
 
     private Recipe currentRecipe;
     private Coroutine craftRoutine;
-
-    // Track whether the pointer is over this slot
     private bool isPointerOver = false;
 
     public void Setup(Recipe recipe)
     {
         currentRecipe = recipe;
 
-        // Display the result item
+        // 1) Assign sprite
         resultIcon.sprite = recipe.resultItem.icon;
         resultQuantityText.text = (recipe.resultQuantity > 1) 
             ? recipe.resultQuantity.ToString() 
             : "";
 
-        // Clear old ingredient icons
+        // 2) Crisp downscale if bigger than 16×16
+        Vector2 spriteSize = recipe.resultItem.icon.rect.size;
+        float maxIconSize = 24f;
+        float largestDim = Mathf.Max(spriteSize.x, spriteSize.y);
+        if (largestDim > maxIconSize)
+        {
+            float scaleFactor = maxIconSize / largestDim;
+            spriteSize *= scaleFactor;
+        }
+
+        // 3) Fit to the parent slot if needed
+        RectTransform slotRect = resultIcon.transform.parent.GetComponent<RectTransform>();
+        if (slotRect != null)
+        {
+            Vector2 slotSize = slotRect.rect.size;
+            if (spriteSize.x > slotSize.x || spriteSize.y > slotSize.y)
+            {
+                float scaleX = slotSize.x / spriteSize.x;
+                float scaleY = slotSize.y / spriteSize.y;
+                float scale = Mathf.Min(scaleX, scaleY);
+                spriteSize *= scale;
+            }
+        }
+
+        // 4) Apply final size
+        resultIcon.rectTransform.sizeDelta = spriteSize;
+
+        // 5) Clear old ingredient icons
         foreach (Transform child in ingredientParent)
         {
             Destroy(child.gameObject);
         }
 
-        // Create a small icon for each ingredient
+        // 6) Create small icons for each ingredient.
+        // For each ingredient, check if it's a single item or a group.
         foreach (var ing in recipe.ingredients)
         {
             GameObject ingSlot = Instantiate(ingredientSlotPrefab, ingredientParent);
             IngredientSlotUI ingUI = ingSlot.GetComponent<IngredientSlotUI>();
-            ingUI.Setup(ing.item.icon, ing.quantity);
+            if (ing.useGroup)
+            {
+                ingUI.SetupGroup(ing.itemGroup, ing.quantity);
+            }
+            else
+            {
+                ingUI.Setup(ing.item, ing.quantity);
+            }
         }
     }
 
-    // -------------------------------
-    // Pointer Tracking
-    // -------------------------------
     public void OnPointerEnter(PointerEventData eventData)
     {
         isPointerOver = true;
-        TooltipUI.instance.ShowTooltip(currentRecipe?.resultItem.itemName);
+        if (currentRecipe != null && currentRecipe.resultItem != null)
+        {
+            // Build the tooltip for the result item
+            string tooltip = currentRecipe.resultItem.itemName;
+            if (!string.IsNullOrEmpty(currentRecipe.resultItem.itemType))
+            {
+                tooltip += $"\n({currentRecipe.resultItem.itemType})";
+            }
+
+            TooltipUI.instance.ShowTooltip(tooltip);
+        }
     }
+
 
     public void OnPointerExit(PointerEventData eventData)
     {
@@ -62,35 +103,26 @@ public class RecipeSlotUI : MonoBehaviour,
         TooltipUI.instance.HideTooltip();
     }
 
-    // -------------------------------
-    // Detect Left-Click (Single Click)
-    // -------------------------------
     public void OnPointerClick(PointerEventData eventData)
     {
         if (currentRecipe == null) return;
 
-        // Only handle Left Mouse button
         if (eventData.button == PointerEventData.InputButton.Left)
         {
-            // Check if Shift is held for "craft all"
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
             {
                 CraftAllPossible();
             }
             else
             {
-                // Craft exactly one item
                 InventoryManager.instance.CraftItem(currentRecipe);
             }
         }
     }
 
-    // -------------------------------
-    // Continuous Crafting via Update
-    // -------------------------------
     private void Update()
     {
-        // If pointer is over this slot and right mouse button is held...
+        // Right-click hold for continuous crafting
         if (isPointerOver && Input.GetMouseButton(1))
         {
             if (craftRoutine == null)
@@ -113,11 +145,7 @@ public class RecipeSlotUI : MonoBehaviour,
         while (isPointerOver && Input.GetMouseButton(1))
         {
             bool success = InventoryManager.instance.CraftItem(currentRecipe);
-            if (!success)
-            {
-                // Not enough ingredients or inventory full—stop crafting
-                break;
-            }
+            if (!success) break;
             yield return new WaitForSeconds(craftInterval);
         }
         craftRoutine = null;
@@ -125,7 +153,6 @@ public class RecipeSlotUI : MonoBehaviour,
 
     private void CraftAllPossible()
     {
-        // Optionally, only allow "craft all" for stackable items
         if (!currentRecipe.resultItem.stackable)
         {
             InventoryManager.instance.CraftItem(currentRecipe);
@@ -133,7 +160,7 @@ public class RecipeSlotUI : MonoBehaviour,
         }
         while (InventoryManager.instance.CraftItem(currentRecipe))
         {
-            // Keep crafting until ingredients run out or inventory is full
+            // Keep crafting until out of ingredients or inventory is full
         }
     }
 }

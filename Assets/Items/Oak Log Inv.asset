@@ -16,3 +16,4 @@ MonoBehaviour:
   icon: {fileID: 127468016, guid: 85f21b7ee892e86428ef1b4210f66620, type: 3}
   stackable: 1
   maxStack: 99
+  itemType: Log

@@ -11,6 +11,5 @@ public class CraftingManager : MonoBehaviour
     void Awake()
     {
         instance = this;
-        Debug.Log($"[CraftingManager] Awake: allRecipes length={allRecipes?.Length}", this);
     }
 }

@@ -11,21 +11,23 @@ public class CursorItem : MonoBehaviour
     public Image itemImage;
     public TextMeshProUGUI quantityText;
 
-    [Header("Canvas References")]
-    public Canvas uiCanvas;        // Assign your "Screen Space - Camera" Canvas here
-    public Camera uiCamera;        // Assign the Camera that renders this Canvas
+    [Header("Canvas Reference")]
+    public Canvas uiCanvas;  // For Screen Space - Overlay or Screen Space - Camera
+
+    private const float maxIconSize = 24f;
 
     void Update()
     {
-        // Move the cursor icon if it's active (existing code)
+        // Move the cursor icon if it's active
         if (gameObject.activeSelf)
         {
             Vector2 localPoint;
+            // For Screen Space - Overlay, pass null as the camera
             RectTransform canvasRect = uiCanvas.GetComponent<RectTransform>();
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 canvasRect,
                 Input.mousePosition,
-                uiCamera,
+                null,
                 out localPoint
             );
             GetComponent<RectTransform>().anchoredPosition = localPoint;
@@ -34,15 +36,16 @@ public class CursorItem : MonoBehaviour
         // Check for dropping items only if we're holding something
         if (heldItem != null && heldItem.item != null)
         {
-            // Left-click (mouse button 0) => Drop entire stack
+            // Left-click => Drop entire stack
             if (Input.GetMouseButtonDown(0))
             {
+                // If not over a UI element
                 if (!EventSystem.current.IsPointerOverGameObject())
                 {
                     DropStack();
                 }
             }
-            // Right-click (mouse button 1) => Drop one item (or entire stack if only 1 left)
+            // Right-click => Drop one item
             else if (Input.GetMouseButtonDown(1))
             {
                 if (!EventSystem.current.IsPointerOverGameObject())
@@ -55,27 +58,21 @@ public class CursorItem : MonoBehaviour
 
     private void DropStack()
     {
-        // Example: spawn the entire stack in the world
         WorldItemDropper.DropItem(heldItem, GetDropPosition());
-        // Clear the cursor
         heldItem = null;
         UpdateCursor();
     }
 
     private void DropOne()
     {
-        // If we only have 1 in the stack, drop the entire stack
         if (heldItem.quantity <= 1)
         {
             DropStack();
             return;
         }
 
-        // Otherwise, drop just 1 item
         ItemStack single = new ItemStack(heldItem.item, 1);
         WorldItemDropper.DropItem(single, GetDropPosition());
-
-        // Decrement our held stack
         heldItem.quantity -= 1;
         UpdateCursor();
     }
@@ -93,6 +90,35 @@ public class CursorItem : MonoBehaviour
         {
             itemImage.sprite = heldItem.item.icon;
             itemImage.enabled = true;
+
+            // 1) Clamp icon size if bigger than 24x24
+            Vector2 spriteSize = heldItem.item.icon.rect.size;
+            float largestDim = Mathf.Max(spriteSize.x, spriteSize.y);
+            bool scaledDown = false;
+            if (largestDim > maxIconSize)
+            {
+                float scaleFactor = maxIconSize / largestDim;
+                spriteSize *= scaleFactor;
+                scaledDown = true;
+            }
+
+            // 2) Removed the second clamp that tries to fit the cursor's RectTransform.
+            //    This prevents the icon from shrinking again if the cursor rect is smaller.
+
+            // 3) Apply final size
+            itemImage.rectTransform.sizeDelta = spriteSize;
+
+            // 4) Optional nudge if scaled
+            if (scaledDown)
+            {
+                itemImage.rectTransform.anchoredPosition = new Vector2(1f, 1f);
+            }
+            else
+            {
+                itemImage.rectTransform.anchoredPosition = Vector2.zero;
+            }
+
+            // Quantity text
             if (heldItem.quantity > 1)
             {
                 quantityText.text = heldItem.quantity.ToString();

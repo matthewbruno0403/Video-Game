@@ -1,3 +1,4 @@
+// HotbarUI.cs
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,27 +24,16 @@ public class HotbarUI : MonoBehaviour
 
         for (int i = 0; i < slotCount; i++)
         {
-            // 1) Instantiate
             GameObject slotGO = Instantiate(slotPrefab, slotParent);
-            hotbarSlots[i] = slotGO.GetComponent<SlotUI>();
-
-            // 2) Get the SlotUI
             SlotUI slotUI = slotGO.GetComponent<SlotUI>();
-
-            // 3) Assign references
             slotUI.slotIndex = i;
             slotUI.inventoryManager = inventoryManager;
             slotUI.cursorItem = cursorItem;             
-
-            // 4) Store in the array
             hotbarSlots[i] = slotUI;
         }
 
-        // Now that each SlotUI has a manager/cursor, we can refresh
         RefreshHotbar();
-        // Force the UI to rebuild so slots are positioned
         Canvas.ForceUpdateCanvases();
-        // Ensure highlight is placed on initial active slot
         SetActiveSlot(0);
     }
 
@@ -51,7 +41,6 @@ public class HotbarUI : MonoBehaviour
     {
         HandleHotbarInput();
 
-        // Press Q to drop 1 item from the active slot
         if (Input.GetKeyDown(KeyCode.Q))
         {
             DropOneFromActiveSlot();
@@ -60,13 +49,11 @@ public class HotbarUI : MonoBehaviour
 
     public void RefreshHotbar()
     {
-        
         if (hotbarSlots == null || hotbarSlots.Length == 0) return;
 
-        // Display itemStacks[0..9]
         for (int i = 0; i < hotbarSlots.Length; i++)
         {
-            int slotIndex = i; // same as i
+            int slotIndex = i;
             if (slotIndex < inventoryManager.itemStacks.Length)
             {
                 hotbarSlots[i].SetItem(inventoryManager.itemStacks[slotIndex]);
@@ -106,20 +93,45 @@ public class HotbarUI : MonoBehaviour
         }
     }
 
-    private void SetActiveSlot(int index)
+    public void SetActiveSlot(int index)
     {
         if (index < 0) index = 0;
         if (index >= slotCount) index = slotCount - 1;
 
         activeSlotIndex = index;
+        ForceReequipSlot(activeSlotIndex);
+    }
+
+    /// <summary>
+    /// Forces the hotbar to equip whatever is currently in the given slot,
+    /// even if that item just changed.
+    /// </summary>
+    public void ForceReequipSlot(int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= slotCount) return;
+
+        ItemStack activeStack = inventoryManager.itemStacks[slotIndex];
+        PlayerItemHolder holder = FindObjectOfType<PlayerItemHolder>();
+
+        if (activeStack != null && activeStack.item != null)
+        {
+            Debug.Log($"[HotbarUI] ForceReequipSlot: Slot {slotIndex} contains item: {activeStack.item.itemName}");
+            holder.Equip(activeStack.item);
+        }
+        else
+        {
+            Debug.Log($"[HotbarUI] ForceReequipSlot: Slot {slotIndex} is empty");
+            holder.Equip(null);
+        }
 
         // Move highlightRect over chosen slot
-        if (highlightRect != null && hotbarSlots != null && hotbarSlots.Length > index)
+        if (highlightRect != null && hotbarSlots != null && hotbarSlots.Length > slotIndex)
         {
-            RectTransform slotRect = hotbarSlots[index].GetComponent<RectTransform>();
+            RectTransform slotRect = hotbarSlots[slotIndex].GetComponent<RectTransform>();
             highlightRect.position = slotRect.position;
         }
     }
+    
     public ItemStack GetActiveSlotItem()
     {
         if (hotbarSlots == null || hotbarSlots.Length == 0) return null;
@@ -129,30 +141,18 @@ public class HotbarUI : MonoBehaviour
 
     private void DropOneFromActiveSlot()
     {
-        // 1) Get the ItemStack in the active slot
         int slotIndex = activeSlotIndex;
         ItemStack stack = inventoryManager.itemStacks[slotIndex];
-
-        // 2) If it’s null or empty, do nothing
         if (stack == null || stack.item == null || stack.quantity <= 0)
             return;
 
-        // 3) Create a new stack of quantity 1 to drop
         ItemStack single = new ItemStack(stack.item, 1);
-
-        // 4) Use WorldItemDropper
-        WorldItemDropper.DropItem(single, Vector3.zero); 
-        // (We ignore dropPosition since the dropper spawns at the player's position anyway)
-
-        // 5) Decrement the inventory stack by 1
+        WorldItemDropper.DropItem(single, Vector3.zero);
         stack.quantity -= 1;
         if (stack.quantity <= 0)
         {
             inventoryManager.itemStacks[slotIndex] = null;
         }
-
-        // 6) Refresh the UI so you see the updated quantity
         inventoryManager.RefreshUI();
-}
-
+    }
 }

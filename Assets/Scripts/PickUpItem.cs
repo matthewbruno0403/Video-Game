@@ -5,7 +5,7 @@ public class PickUpItem : MonoBehaviour
     Transform player;
     [SerializeField] float speed = 10f;
     [SerializeField] float pickUpDistance = 1.5f;
-    [SerializeField] float timeToLeave = 6000f;
+    [SerializeField] float timeToLeave = 300f;
 
     public Item itemData;
     public int quantity = 1;
@@ -50,22 +50,16 @@ public class PickUpItem : MonoBehaviour
     {
         if (GameManager.instance == null)
         {
-            Debug.LogError("GameManager instance is null at start!");
             return;
         }
         if (GameManager.instance.player == null)
         {
-            Debug.LogError("GameManager's player reference is null at Start!");
             return;
         }
         player = GameManager.instance.player.transform;
 
         // Find the InventoryManager
         inventoryManager = FindObjectOfType<InventoryManager>();
-        if (inventoryManager == null)
-        {
-            Debug.LogError("No InventoryManager found in scene!");
-        }
     }
   
     private void Update()
@@ -78,7 +72,6 @@ public class PickUpItem : MonoBehaviour
             t = Mathf.Clamp01(t);
 
             Vector3 newPos = Vector3.Lerp(dropStartPos, dropEndPos, t);
-
             float heightOffset = arcHeight * Mathf.Sin(Mathf.PI * t);
             newPos.y += heightOffset;
 
@@ -122,14 +115,25 @@ public class PickUpItem : MonoBehaviour
         // If close enough, pick up
         if (distance < 0.1f)
         {
-            bool success = inventoryManager.AddItem(itemData, quantity);
-            if (!success)
+            int usedSlot = inventoryManager.AddItem(itemData, quantity);
+            if (usedSlot < 0)
             {
                 Debug.Log("Inventory is full! Can't pick up item.");
                 // Slight nudge away from player to avoid stuck overlap
                 transform.position += (transform.position - player.position).normalized * 1f;
                 return;
             }
+
+        // Force the hotbar to refresh and re-equip the active slot if the item landed there
+        HotbarUI hotbarUI = FindObjectOfType<HotbarUI>();
+        if (hotbarUI != null)
+        {
+            hotbarUI.RefreshHotbar();
+            if (usedSlot == hotbarUI.activeSlotIndex)
+            {
+                hotbarUI.SetActiveSlot(hotbarUI.activeSlotIndex);
+            }
+        }
             Destroy(gameObject);
         }
     }

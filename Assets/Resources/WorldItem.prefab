@@ -100,11 +100,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 10
   pickUpDistance: 1.5
-  timeToLeave: 10
+  timeToLeave: 300
   itemData: {fileID: 0}
   quantity: 1
-  isDropping: 1
-  dropDestination: {x: 0, y: 0, z: 0}
 --- !u!50 &-8201861772518084311
 Rigidbody2D:
   serializedVersion: 4

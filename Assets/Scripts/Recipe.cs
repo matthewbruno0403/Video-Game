@@ -15,6 +15,9 @@ public class Recipe : ScriptableObject
 [System.Serializable]
 public class Ingredient
 {
+    public bool useGroup;
     public Item item;
     public int quantity;
+    public ItemGroup itemGroup;
+
 }
